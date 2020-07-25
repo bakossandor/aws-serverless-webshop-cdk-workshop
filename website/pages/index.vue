@@ -11,9 +11,8 @@ export default {
     Products,
   },
   async asyncData({ $content }) {
-    const products = await $content('products').fetch()
-    console.log(products)
-    return { products }
+    const [products] = await $content('products').fetch()
+    return { products: products.products }
   },
 }
 </script>

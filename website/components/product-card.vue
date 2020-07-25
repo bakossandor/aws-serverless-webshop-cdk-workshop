@@ -4,6 +4,11 @@
     <b-card-text>
       {{ prod.description }}
     </b-card-text>
+    <hr />
+    <b-card-text class="d-inline"> $ {{ prod.price }} </b-card-text>
+    <b-button variant="dark" class="d-inline float-right"
+      >Add to Basket</b-button
+    >
   </b-card>
 </template>
 
