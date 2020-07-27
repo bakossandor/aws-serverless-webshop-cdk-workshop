@@ -5,13 +5,17 @@
 
     <b-collapse id="nav-collapse" is-nav>
       <!-- Right aligned nav items -->
-      <b-navbar-nav v-if="loggedin" class="ml-auto">
-        <b-nav-item to="/profile">Profile</b-nav-item>
-        <b-nav-item>Sign Out</b-nav-item>
-      </b-navbar-nav>
-      <b-navbar-nav v-else class="ml-auto">
-        <b-nav-item to="/signin">Sign In</b-nav-item>
-        <b-nav-item to="/signup">Sign Up</b-nav-item>
+      <b-navbar-nav class="ml-auto">
+        <b-nav-item to="/checkout">
+          <b-icon class="h4" icon="cart-4"></b-icon>
+          <span style="color: #28a745; font-weight: bold;">
+            {{ cartItemsTotal }}
+          </span>
+        </b-nav-item>
+        <b-nav-item v-if="loggedin" to="/profile">Profile</b-nav-item>
+        <b-nav-item v-if="loggedin">Sign Out</b-nav-item>
+        <b-nav-item v-if="!loggedin" to="/signin">Sign In</b-nav-item>
+        <b-nav-item v-if="!loggedin" to="/signup">Sign Up</b-nav-item>
       </b-navbar-nav>
     </b-collapse>
   </b-navbar>
@@ -22,6 +26,7 @@ export default {
   data() {
     return {
       loggedin: true,
+      cartItemsTotal: 2,
     }
   },
 }

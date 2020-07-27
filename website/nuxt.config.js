@@ -56,6 +56,9 @@ export default {
     // Doc: https://github.com/nuxt/content
     '@nuxt/content',
   ],
+  bootstrapVue: {
+    icons: true,
+  },
   /*
    ** Content module configuration
    ** See https://content.nuxtjs.org/configuration
