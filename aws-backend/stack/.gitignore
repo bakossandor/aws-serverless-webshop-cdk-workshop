@@ -1,0 +1,17 @@
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# Parcel default cache directory
+.parcel-cache
+
+# want to keep away it
+package-lock.json
+
+# test-file
+test.json
+
+#env
+.env.js
