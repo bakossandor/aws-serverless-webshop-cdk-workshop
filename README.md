@@ -92,7 +92,7 @@ The PK pattern is like #customer#{id}, the SK pattern is like #order#{id}
 The PK pattern is like #customer#{id}, the SK pattern is like #delivery_address#{id}
 
 ### DynamoDB Queries based on the Query requirement (sudo style)
-- Get Customer Data: `Query Where PK = #customer#{id} AND SK = profile`
+- Get Customer Data: `Query Where PK = #customer#{id} AND SK = #profile`
 - Get Customer Shipping Addresses: `Query Where PK = #customer#{id} AND SK begins_with #delivery_address#`
 - Get Customer Shipping Address: `Query Where PK = #customer#{id} AND SK = #delivery_address#{id}` (but we would not need this one)
 - Get Customer Ordrers: `Query Where PK = #customer#{pk} AND SK begins_with #order#`
