@@ -78,7 +78,7 @@ The PK pattern is like #customer#{id}, the SK pattern is like #profile
 
 |Partition Key|Sort Key|Attribute 4|Attribute 5|Attribute 6|Attribute 7|Attribute 8|Attribute 9|Attribute 10|
 |---|---|---|---|---|---|---|---|---|
-|S:PK|S:SK|S:order_delivery_address|S:order_delivery_name|S:order_delivery_phone_number|Map:order_items|S:order_id|N:order_total_price|S:order_status|
+|S:PK|S:SK|S:order_delivery_address|S:order_delivery_name|S:order_delivery_phone_number|List{Map}:order_items|S:order_id|N:order_total_price|S:order_status|
 
 The PK pattern is like #customer#{id}, the SK pattern is like #order#{id}
 

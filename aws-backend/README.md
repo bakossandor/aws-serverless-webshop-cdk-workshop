@@ -291,3 +291,5 @@ And if you have done everything correctly you should see the following response:
   }
 }
 ```
+
+### Other Lambda Functions

@@ -2,8 +2,8 @@ const cdk = require('@aws-cdk/core');
 const { Function } = require('@aws-cdk/aws-lambda')
 const { Policy } = require('@aws-cdk/aws-iam')
 
-const { customerProfileProps } = require('./lambda-props')
-const { dynamoGetItemPolicyProps } = require('./iam-props')
+const { customerProfileProps, customerOrdersProps } = require('./lambda-props')
+const { dynamoGetItemPolicyProps, dynamoQueryPolicyProps } = require('./iam-props')
 
 class AppStack extends cdk.Stack {
   constructor(scope, id, props) {
@@ -11,6 +11,7 @@ class AppStack extends cdk.Stack {
 
     // Policy
     const getPolicy = new Policy(this, 'WebshopDynamoGetItemPolicy', dynamoGetItemPolicyProps)
+    const queryPolicy = new Policy(this, 'WebshopDynamoQueryPolicy', dynamoQueryPolicyProps)
 
     // Lambda 
     const getCustomerProfileLamda = new Function(
@@ -19,6 +20,13 @@ class AppStack extends cdk.Stack {
       customerProfileProps
     )
     getCustomerProfileLamda.role.attachInlinePolicy(getPolicy)
+    
+    const queryCustomerOrdersLamda = new Function(
+      this, 
+      'webshop-backend-get-customer-orders-lamda', 
+      customerOrdersProps
+    )
+    queryCustomerOrdersLamda.role.attachInlinePolicy(queryPolicy)
 
   }
 }
