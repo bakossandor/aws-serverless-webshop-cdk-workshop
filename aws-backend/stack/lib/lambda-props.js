@@ -13,7 +13,14 @@ const customerOrdersProps = {
   code: Code.fromAsset(path.join(__dirname, '..', 'lambda')),
 }
 
+const customerAddressesProps = {
+  runtime: Runtime.NODEJS_12_X,
+  handler: 'customer-addresses.handler',
+  code: Code.fromAsset(path.join(__dirname, '..', 'lambda')),
+}
+
 module.exports = {
+  customerAddressesProps,
   customerProfileProps,
   customerOrdersProps,
 }
