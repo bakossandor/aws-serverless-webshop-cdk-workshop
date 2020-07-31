@@ -19,8 +19,29 @@ const customerAddressesProps = {
   code: Code.fromAsset(path.join(__dirname, '..', 'lambda')),
 }
 
+const postCustomerAddressesProps = {
+  runtime: Runtime.NODEJS_12_X,
+  handler: 'post-customer-address.handler',
+  code: Code.fromAsset(path.join(__dirname, '..', 'lambda')),
+}
+
+const deleteCustomerAddressesProps = {
+  runtime: Runtime.NODEJS_12_X,
+  handler: 'delete-customer-address.handler',
+  code: Code.fromAsset(path.join(__dirname, '..', 'lambda')),
+}
+
+const postCustomerOrderProps = {
+  runtime: Runtime.NODEJS_12_X,
+  handler: 'post-customer-order.handler',
+  code: Code.fromAsset(path.join(__dirname, '..', 'lambda')),
+}
+
 module.exports = {
   customerAddressesProps,
   customerProfileProps,
   customerOrdersProps,
+  postCustomerAddressesProps,
+  deleteCustomerAddressesProps,
+  postCustomerOrderProps,
 }
