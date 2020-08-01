@@ -30,10 +30,10 @@ exports.handler = async function(event) {
       customerPhone: Item.customer_phone_number.S,
       customerEmail: Item.customer_email.S,
   }
-  
+
   return {
     statusCode: 200,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(responseBody)
+    body: JSON.stringify(event)
   };
 };
