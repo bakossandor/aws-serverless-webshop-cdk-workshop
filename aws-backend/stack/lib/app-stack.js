@@ -1,15 +1,12 @@
 const cdk = require('@aws-cdk/core');
 const { Function, LayerVersion, CfnPermission } = require('@aws-cdk/aws-lambda')
 const { Policy } = require('@aws-cdk/aws-iam')
-const { 
-  LambdaProxyIntegration,
-  HttpMethod,
+const {
   HttpApi,
   CfnAuthorizer,
   CfnRoute,
   CfnIntegration
  } = require('@aws-cdk/aws-apigatewayv2')
- const { ApiEventSource } = require('@aws-cdk/aws-lambda-event-sources')
 
 const { 
   customerProfileProps, 
@@ -31,6 +28,7 @@ const {
 const { layerProps } = require('./layer-props')
 const { httpApiProps } = require('./http-api-props')
 const { identityIssuer, identiyAudience } = require('../.env.js')
+const createRoute = require('./create-route')
 
 class AppStack extends cdk.Stack {
   constructor(scope, id, props) {
@@ -95,7 +93,7 @@ class AppStack extends cdk.Stack {
     // Adding the HTTP API
     const httpApi = new HttpApi(this, 'HttpApi', httpApiProps);
     
-
+    // Adding the Authorizer
     const authorizer = new CfnAuthorizer(this, 'HttpAPIAuthorizer', {
       'name': 'HttpAPIAuthorizer',
       'apiId': httpApi.httpApiId,
@@ -107,6 +105,7 @@ class AppStack extends cdk.Stack {
       }
     })
 
+    // Routes to the API
     const getCustomerProfileIntegration = new CfnIntegration(this, "getCustomerProfileIntegration", {
       apiId: httpApi.httpApiId,
       integrationType: "AWS_PROXY",
@@ -119,6 +118,7 @@ class AppStack extends cdk.Stack {
       'routeKey': 'GET /customer/profile',
       'target': `integrations/${getCustomerProfileIntegration.ref}`,
       'authorizerId': authorizer.ref,
+      'authorizationType': 'JWT',
     })
 
     const getCustomerPermission = new CfnPermission(this, "customerPermission", {
@@ -128,87 +128,67 @@ class AppStack extends cdk.Stack {
       sourceArn: `arn:aws:execute-api:${this.region}:${this.account}:${httpApi.httpApiId}/*/*/customer/profile`
     })
 
-    new cdk.CfnOutput(this, "permission source arn", {
-      value: `arn:aws:execute-api:${this.region}:${this.account}:${httpApi.httpApiId}/*/*/customer/profile`
+    // Custom Rute Add method
+
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: queryCustomerOrdersLamda,
+      integrationId: 'GetCustomerOrdersIntegration',
+      routeId: 'GetCustomerOrdersRoute',
+      permissionId: 'GetCustomerOrdersPermission',
+      method: 'GET',
+      path: '/customer/orders',
     })
-    
 
-    // GET /customer/profile
-    // const getCustomerProfileIntegration = new LambdaProxyIntegration({
-    //   handler: getCustomerProfileLamda,
-    // });
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: queryCustomerAddressesLamda,
+      integrationId: 'GetCustomerAddressesIntegration',
+      routeId: 'GetCustomerAddressesRoute',
+      permissionId: 'GetCustomerAddressesPermission',
+      method: 'GET',
+      path: '/customer/addresses',
+    })
 
-    // const getCustomerProfileRoute = new CfnRoute(this, "getCustomerProfileRoute", {
-    //   'apiId': httpApi.httpApiId,
-    //   'routeKey': 'GET /customer/profile',
-    //   'target': '/integrations/' + getCustomerProfileIntegration,
-    //   ''
-    // })
-    
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: postCustomerOrderLamda,
+      integrationId: 'PostCustomerOrderIntegration',
+      routeId: 'PostCustomerOrderRoute',
+      permissionId: 'PostCustomerOrderPermission',
+      method: 'POST',
+      path: '/customer/orders',
+    })
 
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: postCustomerAddressesLamda,
+      integrationId: 'PostCustomerAddressesIntegration',
+      routeId: 'PostCustomerAddressesRoute',
+      permissionId: 'PostCustomerAddressesPermission',
+      method: 'POST',
+      path: '/customer/addresses',
+    })
 
-    // httpApi.addRoutes({
-    //   path: '/customer/profile',
-    //   methods: [ HttpMethod.GET ],
-    //   integration: getCustomerProfileIntegration,
-    // });
-
-    // // GET /customer/orders
-    // const getCustomerOrdersIntegration = new LambdaProxyIntegration({
-    //   handler: queryCustomerOrdersLamda,
-    // });
-
-    // httpApi.addRoutes({
-    //   path: '/customer/orders',
-    //   methods: [ HttpMethod.GET ],
-    //   integration: getCustomerOrdersIntegration,
-    // });
-
-    // // GET /customer/adresses
-    // const getCustomerAddressesIntegration = new LambdaProxyIntegration({
-    //   handler: queryCustomerAddressesLamda,
-    // });
-
-    // httpApi.addRoutes({
-    //   path: '/customer/adresses',
-    //   methods: [ HttpMethod.GET ],
-    //   integration: getCustomerAddressesIntegration,
-    // });
-
-    // // POST /customer/orders
-    // const postCustomerOrdersIntegration = new LambdaProxyIntegration({
-    //   handler: postCustomerOrderLamda,
-    // });
-
-    // httpApi.addRoutes({
-    //   path: '/customer/orders',
-    //   methods: [ HttpMethod.POST ],
-    //   integration: postCustomerOrdersIntegration,
-    // });
-
-    // // POST /customer/addresses
-    // const postCustomerAddressesIntegration = new LambdaProxyIntegration({
-    //   handler: postCustomerAddressesLamda,
-    // });
-
-    // httpApi.addRoutes({
-    //   path: '/customer/addresses',
-    //   methods: [ HttpMethod.POST ],
-    //   integration: postCustomerAddressesIntegration,
-    // });
-
-    // // DELETE /customer/addresses
-    // const deleteCustomerAddressesIntegration = new LambdaProxyIntegration({
-    //   handler: deleteCustomerAddressesLamda,
-    // });
-
-    // httpApi.addRoutes({
-    //   path: '/customer/addresses/{id}',
-    //   methods: [ HttpMethod.DELETE ],
-    //   integration: deleteCustomerAddressesIntegration,
-    // });
-
-
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: deleteCustomerAddressesLamda,
+      integrationId: 'DeleteCustomerAddressesIntegration',
+      routeId: 'DeleteCustomerAddressesRoute',
+      permissionId: 'DeleteCustomerAddressesPermission',
+      method: 'DELETE',
+      path: '/customer/addresses',
+    })
   }
 }
 

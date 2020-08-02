@@ -293,3 +293,44 @@ And if you have done everything correctly you should see the following response:
 ```
 
 ### Other Lambda Functions
+
+
+### Creating the first Route
+
+```js
+// Adding the HTTP API
+const httpApi = new HttpApi(this, 'HttpApi', httpApiProps);
+
+// Adding the Authorizer
+const authorizer = new CfnAuthorizer(this, 'HttpAPIAuthorizer', {
+  'name': 'HttpAPIAuthorizer',
+  'apiId': httpApi.httpApiId,
+  'authorizerType': 'JWT',
+  'identitySource': ['$request.header.Authorization'],
+  'jwtConfiguration': {
+    'audience': [identiyAudience],
+    'issuer': identityIssuer
+  }
+})
+
+const getCustomerProfileIntegration = new CfnIntegration(this, "getCustomerProfileIntegration", {
+  apiId: httpApi.httpApiId,
+  integrationType: "AWS_PROXY",
+  integrationUri: getCustomerProfileLamda.functionArn,
+  payloadFormatVersion: '2.0'
+})
+
+const getCustomerProfileRoute = new CfnRoute(this, "getCustomerProfileRoute", {
+  'apiId': httpApi.httpApiId,
+  'routeKey': 'GET /customer/profile',
+  'target': `integrations/${getCustomerProfileIntegration.ref}`,
+  'authorizerId': authorizer.ref,
+})
+
+const getCustomerPermission = new CfnPermission(this, "customerPermission", {
+  action: 'lambda:InvokeFunction',
+  principal: 'apigateway.amazonaws.com',
+  functionName: getCustomerProfileLamda.functionArn,
+  sourceArn: `arn:aws:execute-api:${this.region}:${this.account}:${httpApi.httpApiId}/*/*/customer/profile`
+})
+```
