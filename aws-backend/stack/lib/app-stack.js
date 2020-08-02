@@ -1,6 +1,12 @@
 const cdk = require('@aws-cdk/core');
-const { Function, LayerVersion } = require('@aws-cdk/aws-lambda')
+const { Function, LayerVersion, CfnPermission } = require('@aws-cdk/aws-lambda')
 const { Policy } = require('@aws-cdk/aws-iam')
+const {
+  HttpApi,
+  CfnAuthorizer,
+  CfnRoute,
+  CfnIntegration
+ } = require('@aws-cdk/aws-apigatewayv2')
 
 const { 
   customerProfileProps, 
@@ -10,6 +16,7 @@ const {
   deleteCustomerAddressesProps,
   postCustomerOrderProps,
 } = require('./lambda-props')
+
 const { 
   dynamoGetItemPolicyProps, 
   dynamoQueryPolicyProps,
@@ -17,7 +24,11 @@ const {
   dynamoDeleteItemPolicyProps,
   dynamoBatchGetItemItemPolicyProps,
 } = require('./iam-props')
+
 const { layerProps } = require('./layer-props')
+const { httpApiProps } = require('./http-api-props')
+const { identityIssuer, identiyAudience } = require('../.env.js')
+const createRoute = require('./create-route')
 
 class AppStack extends cdk.Stack {
   constructor(scope, id, props) {
@@ -78,6 +89,106 @@ class AppStack extends cdk.Stack {
     postCustomerOrderLamda.role.attachInlinePolicy(putPolicy)
     postCustomerOrderLamda.role.attachInlinePolicy(batchGetItemPolicy)
     postCustomerOrderLamda.addLayers(auxiliariesLayer)
+
+    // Adding the HTTP API
+    const httpApi = new HttpApi(this, 'HttpApi', httpApiProps);
+    
+    // Adding the Authorizer
+    const authorizer = new CfnAuthorizer(this, 'HttpAPIAuthorizer', {
+      'name': 'HttpAPIAuthorizer',
+      'apiId': httpApi.httpApiId,
+      'authorizerType': 'JWT',
+      'identitySource': ['$request.header.Authorization'],
+      'jwtConfiguration': {
+        'audience': [identiyAudience],
+        'issuer': identityIssuer
+      }
+    })
+
+    // Routes to the API
+    const getCustomerProfileIntegration = new CfnIntegration(this, "getCustomerProfileIntegration", {
+      apiId: httpApi.httpApiId,
+      integrationType: "AWS_PROXY",
+      integrationUri: getCustomerProfileLamda.functionArn,
+      payloadFormatVersion: '2.0'
+    })
+
+    const getCustomerProfileRoute = new CfnRoute(this, "getCustomerProfileRoute", {
+      'apiId': httpApi.httpApiId,
+      'routeKey': 'GET /customer/profile',
+      'target': `integrations/${getCustomerProfileIntegration.ref}`,
+      'authorizerId': authorizer.ref,
+      'authorizationType': 'JWT',
+    })
+
+    const getCustomerPermission = new CfnPermission(this, "customerPermission", {
+      action: 'lambda:InvokeFunction',
+      principal: 'apigateway.amazonaws.com',
+      functionName: getCustomerProfileLamda.functionArn,
+      sourceArn: `arn:aws:execute-api:${this.region}:${this.account}:${httpApi.httpApiId}/*/*/customer/profile`
+    })
+
+    // Custom Rute Add method
+
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: queryCustomerOrdersLamda,
+      integrationId: 'GetCustomerOrdersIntegration',
+      routeId: 'GetCustomerOrdersRoute',
+      permissionId: 'GetCustomerOrdersPermission',
+      method: 'GET',
+      path: '/customer/orders',
+    })
+
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: queryCustomerAddressesLamda,
+      integrationId: 'GetCustomerAddressesIntegration',
+      routeId: 'GetCustomerAddressesRoute',
+      permissionId: 'GetCustomerAddressesPermission',
+      method: 'GET',
+      path: '/customer/addresses',
+    })
+
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: postCustomerOrderLamda,
+      integrationId: 'PostCustomerOrderIntegration',
+      routeId: 'PostCustomerOrderRoute',
+      permissionId: 'PostCustomerOrderPermission',
+      method: 'POST',
+      path: '/customer/orders',
+    })
+
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: postCustomerAddressesLamda,
+      integrationId: 'PostCustomerAddressesIntegration',
+      routeId: 'PostCustomerAddressesRoute',
+      permissionId: 'PostCustomerAddressesPermission',
+      method: 'POST',
+      path: '/customer/addresses',
+    })
+
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: deleteCustomerAddressesLamda,
+      integrationId: 'DeleteCustomerAddressesIntegration',
+      routeId: 'DeleteCustomerAddressesRoute',
+      permissionId: 'DeleteCustomerAddressesPermission',
+      method: 'DELETE',
+      path: '/customer/addresses',
+    })
   }
 }
 
