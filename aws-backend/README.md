@@ -292,12 +292,191 @@ And if you have done everything correctly you should see the following response:
 }
 ```
 
-### Other Lambda Functions
+### Lambda Functions
+Here you can find all the functions related to the applications
 
+[GET customer-profile](/stack/lambda/customer-profile.js)
 
-### Creating the first Route
+[GET customer-orders](/stack/lambda/customer-orders.js)
+
+[POST customer-orders](/stack/lambda/post-customer-orders.js)
+
+[GET customer-addresses](/stack/lambda/customer-orders.js)
+
+[POST customer-addresses](/stack/lambda/post-customer-addresses.js)
+
+[DELETE customer-addresses](/stack/lambda/delete-customer-addresses.js)
+
+### Creating The Cognito User Pool for the Route Authorizer
+
+We have all the Lambda Functions ready and tested. Now we have to route those functions to an API to be accessable, but in order to have a secure API we need a Authorizer attached to the routes. 
+
+For our luck and convenience, AWS provide the `Cognito` service, which offer a decent way to manage users and authentication/authorization to our applications.
+
+Now, If you are not familiar with Cognito, I highly recommend to try it out in the Console. 
+
+Using `aws-cdk`, I am going to create a new stack for this application, the same way we did with our database as well. 
+
+- Create a new file `./lib/cognito-stack.js`.
+- Have the following code in it
+```js
+// ./lib/cognito-stack.js
+
+const cdk = require('@aws-cdk/core');
+const { UserPool, UserPoolClient } = require('@aws-cdk/aws-cognito')
+const { Function } = require('@aws-cdk/aws-lambda')
+const { Policy } = require('@aws-cdk/aws-iam')
+
+const {
+  userPoolProps,
+  userPoolClientProps,
+  dynamoPutItemPolicyProps,
+  postConfirmationFunctionProps
+} = require('./cognito-props')
+
+class CognitoStack extends cdk.Stack {
+  constructor(scope, id, props) {
+    super(scope, id, props);
+    // The code that defines your stack goes here
+    const putPolicy = new Policy(
+      this,
+      'CognitoWebshopDynamoPutItemPolicy',
+      dynamoPutItemPolicyProps
+    )
+
+    const postConfirmationLambda = new Function(
+      this, 
+      'webshop-userpool-congito-post-confirmatin',
+      postConfirmationFunctionProps
+    )
+    postConfirmationLambda.role.attachInlinePolicy(putPolicy)
+
+    const userPool = new UserPool(this, 'webshop-userpool', userPoolProps(postConfirmationLambda));
+
+    const userPoolClient = new UserPoolClient(
+      this, 
+      'webshop-userpool-client-001',
+      userPoolClientProps(userPool)  
+    )
+  }
+}
+
+module.exports = { CognitoStack }
+
+```
+- The stack declares 4 resources
+  - Cognito User Pool
+  - Cognito User Pool Client
+  - Lambda function to trigger a post confirmation write to DynamoDB
+  - Policy attached to Lambda to be able to write to DynamoDB
+
+- The Resources props are declared in the following `./lib/cognito-props.js` file
 
 ```js
+
+// ./lib/cognito-props.js
+const { PolicyStatement, Effect } = require('@aws-cdk/aws-iam')
+const { Runtime, Code } = require("@aws-cdk/aws-lambda")
+const path = require('path')
+
+const { dynamoTableArn } = require('../.env.js')
+
+const userPoolProps = (lambda) => {
+  return {
+    selfSignUpEnabled: true,
+    standardAttributes: {
+      fullname: {
+        required: true,
+        mutable: true,
+      },
+      phoneNumber: {
+        required: true,
+        mutable: true,
+      }
+    },
+    signInAliases: {
+      email: true,
+    },
+    userVerification: {
+      emailStyle: 'LINK',
+    },
+    lambdaTriggers: {
+      postConfirmation: lambda
+    }
+  }
+}
+
+const userPoolClientProps = (userPool) => {
+  return {
+    userPool: userPool,
+    authFlows: {
+      refreshToken: true,
+      userSrp: true,
+      userPassword: true
+    },
+    generateSecret: false,
+  }
+}
+
+const dynamoPutItemPolicyProps = {
+  policyName: 'WebshopDynamoPutItemPolicy',
+  statements: [
+    new PolicyStatement({
+      actions: ['dynamodb:PutItem'],
+      effect: Effect.ALLOW,
+      resources: [dynamoTableArn],
+    }),
+  ],
+}
+
+const postConfirmationFunctionProps = {
+  runtime: Runtime.NODEJS_12_X,
+  handler: 'cognito-post-confirmation.handler',
+  code: Code.fromAsset(path.join(__dirname, '..', 'lambda')),
+}
+
+module.exports = {
+  userPoolProps,
+  userPoolClientProps,
+  postConfirmationFunctionProps,
+  dynamoPutItemPolicyProps
+}
+```
+
+To deploy this stack remember to change the `./bin/stack.js` file for only the duration of the deployment of the Cognito User Pool.
+
+```js
+// ./bin/stack.js
+
+#!/usr/bin/env node
+
+const cdk = require('@aws-cdk/core');
+// const { DynamoStack } = require('../lib/dynamo-stack');
+// const { AppStack } = require('../lib/app-stack')
+const { CognitoStack } = require('../lib/cognito-stack')
+
+const app = new cdk.App();
+// new DynamoStack(app, "WebshopDynamoStack")
+// new AppStack(app, 'WebshopAppStack');
+new CognitoStack(app, 'WebshopCognitoStack')
+```
+
+After the stack is created, it's time to test it. If you check out the AWS console freshly created Cognito User Pool, for temporary, you can add a custom domain, and use the Hosted UI, where you can sign up a test user. After confirmation, check out the database, and look after the new record! If you find it, you done everything absolutly right!.
+
+### Creating the API Gateway HTTP API and the Routes for it.
+By default, the `aws-cdk` has a really straightforward way to create an HTTP API.
+
+You can read more about the [HTTP API](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api.html) and the [cdk api gateway2 module](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-apigatewayv2-readme.html) which defines the http-api struct
+
+### Creating the first Route
+Creating routes, here becoems a little bit tricky, unfortunately there is no higher level construct to create a route with an authorizer porperty, so we have to use the lover `cfn` level apis which for me seems equivalent to a cloudformation template.
+- For all of our route we need to define an [authorizer](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigatewayv2.CfnAuthorizer.html)
+- For each of our route, we need an [route](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigatewayv2.CfnRoute.html), an [integration](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigatewayv2.CfnIntegration.html), and a [permission](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-lambda.CfnPermission.html) (to invoke our lambda functions attached in the integration) cfn resources.
+
+
+```js
+// The HTTP API resource, The universal Authorizer and the First Route components [integration, route, permission]
+
 // Adding the HTTP API
 const httpApi = new HttpApi(this, 'HttpApi', httpApiProps);
 
@@ -333,4 +512,253 @@ const getCustomerPermission = new CfnPermission(this, "customerPermission", {
   functionName: getCustomerProfileLamda.functionArn,
   sourceArn: `arn:aws:execute-api:${this.region}:${this.account}:${httpApi.httpApiId}/*/*/customer/profile`
 })
+```
+
+Now As You can see, it would be way more repetative task to declare all the routes, so I suggest to create a custom route component which creates all the neccessary component for your needs.
+
+```js
+// ./create-route.js
+
+const { CfnRoute, CfnIntegration } = require('@aws-cdk/aws-apigatewayv2')
+const { CfnPermission } = require('@aws-cdk/aws-lambda')
+
+function createRoute({ 
+  stack,
+  httpApi, 
+  authorizer,
+  lambda,  
+  integrationId,
+  routeId,
+  method,
+  path,
+  permissionId
+}) {
+  const integration = new CfnIntegration(stack, integrationId, {
+    apiId: httpApi.httpApiId,
+    integrationType: "AWS_PROXY",
+    integrationUri: lambda.functionArn,
+    payloadFormatVersion: '2.0'
+  })
+
+  const route = new CfnRoute(stack, routeId, {
+    'apiId': httpApi.httpApiId,
+    'routeKey': `${method} ${path}`,
+    'target': `integrations/${integration.ref}`,
+    'authorizerId': authorizer.ref,
+    'authorizationType': 'JWT',
+  })
+
+  const permission = new CfnPermission(stack, permissionId, {
+    action: 'lambda:InvokeFunction',
+    principal: 'apigateway.amazonaws.com',
+    functionName: lambda.functionArn,
+    sourceArn: `arn:aws:execute-api:${stack.region}:${stack.account}:${httpApi.httpApiId}/*/*${path}`
+  })
+}
+
+module.exports = createRoute
+```
+
+At the stack level you have to just provide a couple fo properties, and whoala, you have abstracted away a bunch of code.
+
+After finishing up with the routes, the final stack would look like the following
+
+```js
+// ./lib/app-stack.js
+
+const cdk = require('@aws-cdk/core');
+const { Function, LayerVersion, CfnPermission } = require('@aws-cdk/aws-lambda')
+const { Policy } = require('@aws-cdk/aws-iam')
+const {
+  HttpApi,
+  CfnAuthorizer,
+  CfnRoute,
+  CfnIntegration
+ } = require('@aws-cdk/aws-apigatewayv2')
+
+const { 
+  customerProfileProps, 
+  customerOrdersProps, 
+  customerAddressesProps,
+  postCustomerAddressesProps,
+  deleteCustomerAddressesProps,
+  postCustomerOrderProps,
+} = require('./lambda-props')
+
+const { 
+  dynamoGetItemPolicyProps, 
+  dynamoQueryPolicyProps,
+  dynamoPutItemPolicyProps,
+  dynamoDeleteItemPolicyProps,
+  dynamoBatchGetItemItemPolicyProps,
+} = require('./iam-props')
+
+const { layerProps } = require('./layer-props')
+const { httpApiProps } = require('./http-api-props')
+const { identityIssuer, identiyAudience } = require('../.env.js')
+const createRoute = require('./create-route')
+
+class AppStack extends cdk.Stack {
+  constructor(scope, id, props) {
+    super(scope, id, props);
+
+    // Policy
+    const getPolicy = new Policy(this, 'WebshopDynamoGetItemPolicy', dynamoGetItemPolicyProps)
+    const queryPolicy = new Policy(this, 'WebshopDynamoQueryPolicy', dynamoQueryPolicyProps)
+    const putPolicy = new Policy(this, 'WebshopDynamoPutItemPolicy', dynamoPutItemPolicyProps)
+    const deletePolicy = new Policy(this, 'WebshopDynamoDeleteItemPolicy', dynamoDeleteItemPolicyProps)
+    const batchGetItemPolicy = new Policy(this, 'WebshopDynamoBatchGetItemPolicy', dynamoBatchGetItemItemPolicyProps)
+
+    // Lambda Layer
+    const auxiliariesLayer = new LayerVersion(this, 'AuxiliariesLayer', layerProps)
+
+    // Lambda 
+    const getCustomerProfileLamda = new Function(
+      this, 
+      'webshop-backend-get-customer-profile-lamda', 
+      customerProfileProps
+    )
+    getCustomerProfileLamda.role.attachInlinePolicy(getPolicy)
+    
+    const queryCustomerOrdersLamda = new Function(
+      this, 
+      'webshop-backend-get-customer-orders-lamda', 
+      customerOrdersProps
+    )
+    queryCustomerOrdersLamda.role.attachInlinePolicy(queryPolicy)
+    
+    const queryCustomerAddressesLamda = new Function(
+      this, 
+      'webshop-backend-get-customer-addresses-lamda', 
+      customerAddressesProps
+    )
+    queryCustomerAddressesLamda.role.attachInlinePolicy(queryPolicy)
+    
+    const postCustomerAddressesLamda = new Function(
+      this, 
+      'webshop-backend-post-customer-addresses-lamda', 
+      postCustomerAddressesProps
+    )
+    postCustomerAddressesLamda.role.attachInlinePolicy(putPolicy)
+    postCustomerAddressesLamda.addLayers(auxiliariesLayer)
+    
+    const deleteCustomerAddressesLamda = new Function(
+      this,
+      'webshop-backend-delete-customer-addresses-lamda', 
+      deleteCustomerAddressesProps
+    )
+    deleteCustomerAddressesLamda.role.attachInlinePolicy(deletePolicy)
+
+    const postCustomerOrderLamda = new Function(
+      this, 
+      'webshop-backend-post-customer-order-lamda', 
+      postCustomerOrderProps
+    )
+    postCustomerOrderLamda.role.attachInlinePolicy(putPolicy)
+    postCustomerOrderLamda.role.attachInlinePolicy(batchGetItemPolicy)
+    postCustomerOrderLamda.addLayers(auxiliariesLayer)
+
+    // Adding the HTTP API
+    const httpApi = new HttpApi(this, 'HttpApi', httpApiProps);
+    
+    // Adding the Authorizer
+    const authorizer = new CfnAuthorizer(this, 'HttpAPIAuthorizer', {
+      'name': 'HttpAPIAuthorizer',
+      'apiId': httpApi.httpApiId,
+      'authorizerType': 'JWT',
+      'identitySource': ['$request.header.Authorization'],
+      'jwtConfiguration': {
+        'audience': [identiyAudience],
+        'issuer': identityIssuer
+      }
+    })
+
+    // Routes to the API
+    const getCustomerProfileIntegration = new CfnIntegration(this, "getCustomerProfileIntegration", {
+      apiId: httpApi.httpApiId,
+      integrationType: "AWS_PROXY",
+      integrationUri: getCustomerProfileLamda.functionArn,
+      payloadFormatVersion: '2.0'
+    })
+
+    const getCustomerProfileRoute = new CfnRoute(this, "getCustomerProfileRoute", {
+      'apiId': httpApi.httpApiId,
+      'routeKey': 'GET /customer/profile',
+      'target': `integrations/${getCustomerProfileIntegration.ref}`,
+      'authorizerId': authorizer.ref,
+      'authorizationType': 'JWT',
+    })
+
+    const getCustomerPermission = new CfnPermission(this, "customerPermission", {
+      action: 'lambda:InvokeFunction',
+      principal: 'apigateway.amazonaws.com',
+      functionName: getCustomerProfileLamda.functionArn,
+      sourceArn: `arn:aws:execute-api:${this.region}:${this.account}:${httpApi.httpApiId}/*/*/customer/profile`
+    })
+
+    // Custom Rute Add method
+
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: queryCustomerOrdersLamda,
+      integrationId: 'GetCustomerOrdersIntegration',
+      routeId: 'GetCustomerOrdersRoute',
+      permissionId: 'GetCustomerOrdersPermission',
+      method: 'GET',
+      path: '/customer/orders',
+    })
+
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: queryCustomerAddressesLamda,
+      integrationId: 'GetCustomerAddressesIntegration',
+      routeId: 'GetCustomerAddressesRoute',
+      permissionId: 'GetCustomerAddressesPermission',
+      method: 'GET',
+      path: '/customer/addresses',
+    })
+
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: postCustomerOrderLamda,
+      integrationId: 'PostCustomerOrderIntegration',
+      routeId: 'PostCustomerOrderRoute',
+      permissionId: 'PostCustomerOrderPermission',
+      method: 'POST',
+      path: '/customer/orders',
+    })
+
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: postCustomerAddressesLamda,
+      integrationId: 'PostCustomerAddressesIntegration',
+      routeId: 'PostCustomerAddressesRoute',
+      permissionId: 'PostCustomerAddressesPermission',
+      method: 'POST',
+      path: '/customer/addresses',
+    })
+
+    createRoute({
+      stack: this,
+      httpApi: httpApi,
+      authorizer: authorizer,
+      lambda: deleteCustomerAddressesLamda,
+      integrationId: 'DeleteCustomerAddressesIntegration',
+      routeId: 'DeleteCustomerAddressesRoute',
+      permissionId: 'DeleteCustomerAddressesPermission',
+      method: 'DELETE',
+      path: '/customer/addresses',
+    })
+  }
+}
+
+module.exports = { AppStack }
 ```
