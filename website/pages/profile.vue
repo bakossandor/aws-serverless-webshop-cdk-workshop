@@ -10,12 +10,17 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import ProfileData from '../components/profile-data'
 import OrderData from '../components/order-data'
 export default {
+  middleware: 'auth',
   components: {
     ProfileData,
     OrderData,
+  },
+  computed: {
+    ...mapGetters(['getLoggedIn']),
   },
 }
 </script>

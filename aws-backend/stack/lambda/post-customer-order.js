@@ -73,6 +73,9 @@ exports.handler = async function(event) {
       "order_status": {
         "S": "processing"
       },
+      "order_datetime": {
+        "N": String(Date.now())
+      },
       "order_items": {
         "L": mappedItems.map((item) => {
           return {

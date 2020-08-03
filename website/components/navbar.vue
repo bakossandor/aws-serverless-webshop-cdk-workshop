@@ -12,22 +12,30 @@
             {{ cartItemsTotal }}
           </span>
         </b-nav-item>
-        <b-nav-item v-if="loggedin" to="/profile">Profile</b-nav-item>
-        <b-nav-item v-if="loggedin">Sign Out</b-nav-item>
-        <b-nav-item v-if="!loggedin" to="/signin">Sign In</b-nav-item>
-        <b-nav-item v-if="!loggedin" to="/signup">Sign Up</b-nav-item>
+        <b-nav-item v-if="loggedIn" to="/profile">Profile</b-nav-item>
+        <b-nav-item v-if="loggedIn">Sign Out</b-nav-item>
+        <b-nav-item v-if="!loggedIn" to="/signin">Sign In</b-nav-item>
+        <b-nav-item v-if="!loggedIn" to="/signup">Sign Up</b-nav-item>
       </b-navbar-nav>
     </b-collapse>
   </b-navbar>
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 export default {
+  computed: {
+    ...mapGetters({
+      loggedIn: 'getLoggedIn',
+    }),
+  },
   data() {
     return {
-      loggedin: true,
       cartItemsTotal: 2,
     }
+  },
+  created() {
+    console.log(this.loggedIn)
   },
 }
 </script>

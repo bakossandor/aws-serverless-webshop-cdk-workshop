@@ -1,3 +1,7 @@
+## Extending The Website with amplify
+`npm install aws-amplify`
+
+
 # website
 
 ## Build Setup

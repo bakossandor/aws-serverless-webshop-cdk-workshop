@@ -43,6 +43,7 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
 export default {
   data() {
     return {
@@ -53,9 +54,12 @@ export default {
     }
   },
   methods: {
+    ...mapActions(['signIn']),
     onSubmit(evt) {
       evt.preventDefault()
-      alert(JSON.stringify(this.form))
+      this.signIn(this.form)
+        .then(() => this.$router.push('/'))
+        .catch((error) => console.log(error))
     },
   },
 }

@@ -4,14 +4,20 @@
       <b-card
         bg-variant="dark"
         text-variant="white"
-        title="Sign Up!"
+        :title="!signedUp ? 'Sign Up!' : 'Confirm your sign up!'"
         class="mb-2"
       >
-        <b-card-text>
+        <b-card-text v-if="!signedUp">
           You need to Sign Up in order to get these unbelivable products!
         </b-card-text>
+        <b-card-text v-if="signedUp">
+          Check out your email address, for the confirmation mail
+        </b-card-text>
       </b-card>
-      <b-form @submit="onSubmit">
+      <router-link v-if="signedUp" to="/signin">
+        <b-button variant="primary">Login</b-button>
+      </router-link>
+      <b-form v-if="!signedUp" @submit="onSubmit">
         <b-form-group
           id="input-group-1"
           label="Email address:"
@@ -81,6 +87,7 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
 export default {
   data() {
     return {
@@ -91,12 +98,21 @@ export default {
         password: '',
         repassword: '',
       },
+      signedUp: false,
     }
   },
   methods: {
+    ...mapActions(['signUp']),
     onSubmit(evt) {
       evt.preventDefault()
-      alert(JSON.stringify(this.form))
+      this.signUp({
+        email: this.form.email,
+        name: this.form.name,
+        phone: this.form.phone,
+        password: this.form.password,
+      })
+        .then(() => (this.signedUp = true))
+        .catch(console.error)
     },
   },
 }

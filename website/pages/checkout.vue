@@ -21,6 +21,7 @@ export default {
     BasketItem,
     Shipping,
   },
+  middleware: 'auth',
   data() {
     return {
       order: {

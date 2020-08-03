@@ -11,10 +11,14 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import Order from './order-component'
 export default {
   components: {
     Order,
+  },
+  computed: {
+    ...mapGetters(['getOrders']),
   },
   data() {
     return {
