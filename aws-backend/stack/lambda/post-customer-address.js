@@ -12,11 +12,9 @@ exports.handler = async function(event) {
       }
     }
   }, 
-  'body': {
-    deliveryAddress
-  } 
+  body
 } = event;
-
+  const { deliveryAddress } = JSON.parse(body)
   const putParams = {
     "TableName": "webshop-backend-table",
     "Item": {
@@ -27,7 +25,7 @@ exports.handler = async function(event) {
         "S": `#delivery_address#${uuidv4()}`
       },
       "delivery_address": {
-        "S": deliveryAddress
+        "S": JSON.stringify(deliveryAddress)
       }
     }
   }

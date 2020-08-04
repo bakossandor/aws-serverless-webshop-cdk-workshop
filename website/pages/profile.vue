@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapActions } from 'vuex'
 import ProfileData from '../components/profile-data'
 import OrderData from '../components/order-data'
 export default {
@@ -19,8 +19,16 @@ export default {
     ProfileData,
     OrderData,
   },
-  computed: {
-    ...mapGetters(['getLoggedIn']),
+  created() {
+    try {
+      this.fetchOrders()
+      this.fetchAddresses()
+    } catch (error) {
+      console.error(error)
+    }
+  },
+  methods: {
+    ...mapActions(['fetchOrders', 'fetchAddresses']),
   },
 }
 </script>

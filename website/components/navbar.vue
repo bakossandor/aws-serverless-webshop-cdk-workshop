@@ -9,7 +9,7 @@
         <b-nav-item to="/checkout">
           <b-icon class="h4" icon="cart-4"></b-icon>
           <span style="color: #28a745; font-weight: bold;">
-            {{ cartItemsTotal }}
+            {{ cart.length }}
           </span>
         </b-nav-item>
         <b-nav-item v-if="loggedIn" to="/profile">Profile</b-nav-item>
@@ -27,15 +27,8 @@ export default {
   computed: {
     ...mapGetters({
       loggedIn: 'getLoggedIn',
+      cart: 'getCart',
     }),
-  },
-  data() {
-    return {
-      cartItemsTotal: 2,
-    }
-  },
-  created() {
-    console.log(this.loggedIn)
   },
 }
 </script>

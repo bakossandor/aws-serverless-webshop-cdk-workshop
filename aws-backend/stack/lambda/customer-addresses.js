@@ -25,7 +25,7 @@ exports.handler = async function(event) {
   const responseItems = queryResponse.Items.map((item) => {
     return {
       id: item.SK.S.split("#delivery_address#")[1],
-      deliveryAddress: item.delivery_address.S
+      deliveryAddress: JSON.parse(item.delivery_address.S)
     }
   })
   

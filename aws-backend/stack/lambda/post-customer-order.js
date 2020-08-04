@@ -5,19 +5,19 @@ const { v4: uuidv4 } = require('uuid');
 const processOrders = require('./process-orders')
 
 exports.handler = async function(event) {
-  const { 'requestContext': {
-    'authorizer': {
-      'jwt': {
-        'claims': {
-          sub: userId
+  const { 
+    'requestContext': {
+      'authorizer': {
+        'jwt': {
+          'claims': {
+            sub: userId
+          }
         }
       }
-    }
-  }, 'body': {
-    items,
-    orderDeliveryAddress,
-  } } = event;
-
+    }, 
+    body
+  } = event;
+  const { orderDeliveryAddress } = JSON.parse(body)
   const batchGetItemsParams = {
     "RequestItems": {
       "webshop-backend-table": {

@@ -23,7 +23,7 @@ exports.handler = async function(event) {
         "S": `#customer#${userId}`
       },
       "SK": {
-        "S": `#delivery_address#${addressId}}`
+        "S": `#delivery_address#${addressId}`
       }
     }
   }
