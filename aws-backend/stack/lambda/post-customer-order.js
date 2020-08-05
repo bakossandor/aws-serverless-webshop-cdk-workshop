@@ -17,7 +17,7 @@ exports.handler = async function(event) {
     }, 
     body
   } = event;
-  const { orderDeliveryAddress } = JSON.parse(body)
+  const { orderDeliveryAddress, items } = JSON.parse(body)
   const batchGetItemsParams = {
     "RequestItems": {
       "webshop-backend-table": {
@@ -62,7 +62,7 @@ exports.handler = async function(event) {
         "S": deliveryAddress
       },
       "order_total_price": {
-        "S": String(orderTotalPrice),
+        "N": String(orderTotalPrice),
       },
       "order_delivery_name": {
         "S": customerName,

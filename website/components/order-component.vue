@@ -1,18 +1,21 @@
 <template>
   <b-card :title="'Order number: ' + order.id">
     <h4>Items:</h4>
-    <b-card-text v-for="(item, idx) in order.items" :key="idx">
-      <strong>ID:</strong> {{ item.id }} <strong>Name:</strong> {{ item.name }}
-      <strong>Price:</strong> {{ item.price }} <strong>Volume:</strong>
-      {{ item.volume }}
+    <b-card-text v-for="(item, idx) in order.orderItems" :key="idx">
+      <strong>ID:</strong> {{ item.productId }} <strong>Name:</strong>
+      {{ item.productName }} <strong>Price:</strong> {{ item.productPrice }}
+      <strong>Volume:</strong>
+      {{ item.orderedVolume }}
     </b-card-text>
     <b-card-text>
-      Total Price: <strong>$ {{ order.totalPrice }}</strong>
+      Total Price: <strong>$ {{ order.orderTotalPrice }}</strong>
     </b-card-text>
     <hr />
-    <b-card-text> Name: {{ order.deliveryName }} </b-card-text>
-    <b-card-text> Phone: {{ order.deliveryPhone }} </b-card-text>
-    <b-card-text> Delivery Address: {{ order.deliveryAddress }} </b-card-text>
+    <b-card-text> Name: {{ order.orderDeliveryName }} </b-card-text>
+    <b-card-text> Phone: {{ order.orderDeliveryPhone }} </b-card-text>
+    <b-card-text>
+      Delivery Address: {{ order.orderDeliveryAddress }}
+    </b-card-text>
   </b-card>
 </template>
 

@@ -91,6 +91,18 @@ export const actions = {
       throw new Error('Something went wrong!')
     }
   },
+  async postOrder({ commit, getters }, id) {
+    try {
+      await API.post('shopApi', '/customer/orders', {
+        body: {
+          orderDeliveryAddress: id,
+          items: getters.getCart,
+        },
+      })
+    } catch (error) {
+      throw new Error(error)
+    }
+  },
 }
 
 export const mutations = {
@@ -126,6 +138,9 @@ export const mutations = {
     }
     foundItem.volume -= 1
     state.cart = JSON.parse(JSON.stringify(state.cart))
+  },
+  emptyCart(state) {
+    state.cart = []
   },
 }
 

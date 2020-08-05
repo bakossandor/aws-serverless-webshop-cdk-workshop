@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import BasketItem from '../components/basket-item'
 import Shipping from '../components/shipping'
 export default {
@@ -27,6 +27,9 @@ export default {
     ...mapGetters({
       cart: 'getCart',
     }),
+  },
+  methods: {
+    ...mapActions(['fetchAddresses']),
   },
 }
 </script>
