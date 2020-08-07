@@ -42,6 +42,7 @@ export default {
     async order() {
       try {
         await this.postOrder(this.selectedAddress)
+        this.$router.push('/profile')
       } catch (error) {
         console.log(error)
       }

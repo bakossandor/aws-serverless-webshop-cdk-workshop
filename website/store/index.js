@@ -39,6 +39,13 @@ export const actions = {
       throw new Error('Something went wrong!')
     }
   },
+
+  async signout({ commit }) {
+    console.log('logout')
+    await Auth.signOut()
+    commit('setLoggedIn', false)
+  },
+
   async fetchProfile({ commit }) {
     try {
       const profile = await API.get('shopApi', '/customer/profile')
@@ -91,7 +98,7 @@ export const actions = {
       throw new Error('Something went wrong!')
     }
   },
-  async postOrder({ commit, getters }, id) {
+  async postOrder({ dispatch, getters, commit }, id) {
     try {
       await API.post('shopApi', '/customer/orders', {
         body: {
@@ -99,6 +106,8 @@ export const actions = {
           items: getters.getCart,
         },
       })
+      commit('emptyCart')
+      dispatch('fetchOrders')
     } catch (error) {
       throw new Error(error)
     }

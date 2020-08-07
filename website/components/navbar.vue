@@ -13,7 +13,14 @@
           </span>
         </b-nav-item>
         <b-nav-item v-if="loggedIn" to="/profile">Profile</b-nav-item>
-        <b-nav-item v-if="loggedIn">Sign Out</b-nav-item>
+        <b-nav-item
+          v-if="loggedIn"
+          @click="
+            signout()
+            $router.push('/')
+          "
+          >Sign Out</b-nav-item
+        >
         <b-nav-item v-if="!loggedIn" to="/signin">Sign In</b-nav-item>
         <b-nav-item v-if="!loggedIn" to="/signup">Sign Up</b-nav-item>
       </b-navbar-nav>
@@ -22,13 +29,16 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 export default {
   computed: {
     ...mapGetters({
       loggedIn: 'getLoggedIn',
       cart: 'getCart',
     }),
+  },
+  methods: {
+    ...mapActions(['signout']),
   },
 }
 </script>
