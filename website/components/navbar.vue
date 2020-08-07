@@ -9,25 +9,36 @@
         <b-nav-item to="/checkout">
           <b-icon class="h4" icon="cart-4"></b-icon>
           <span style="color: #28a745; font-weight: bold;">
-            {{ cartItemsTotal }}
+            {{ cart.length }}
           </span>
         </b-nav-item>
-        <b-nav-item v-if="loggedin" to="/profile">Profile</b-nav-item>
-        <b-nav-item v-if="loggedin">Sign Out</b-nav-item>
-        <b-nav-item v-if="!loggedin" to="/signin">Sign In</b-nav-item>
-        <b-nav-item v-if="!loggedin" to="/signup">Sign Up</b-nav-item>
+        <b-nav-item v-if="loggedIn" to="/profile">Profile</b-nav-item>
+        <b-nav-item
+          v-if="loggedIn"
+          @click="
+            signout()
+            $router.push('/')
+          "
+          >Sign Out</b-nav-item
+        >
+        <b-nav-item v-if="!loggedIn" to="/signin">Sign In</b-nav-item>
+        <b-nav-item v-if="!loggedIn" to="/signup">Sign Up</b-nav-item>
       </b-navbar-nav>
     </b-collapse>
   </b-navbar>
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex'
 export default {
-  data() {
-    return {
-      loggedin: true,
-      cartItemsTotal: 2,
-    }
+  computed: {
+    ...mapGetters({
+      loggedIn: 'getLoggedIn',
+      cart: 'getCart',
+    }),
+  },
+  methods: {
+    ...mapActions(['signout']),
   },
 }
 </script>

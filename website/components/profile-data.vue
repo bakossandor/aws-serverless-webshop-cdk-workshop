@@ -5,7 +5,7 @@
     </h3>
     <b-input-group prepend="Name" class="mt-3">
       <b-form-input
-        v-model="form.name.val"
+        v-model="getProfile.customerName"
         class="custom-disable"
         :disabled="!form.name.edit"
         type="text"
@@ -29,7 +29,7 @@
 
     <b-input-group prepend="Phone" class="mt-3">
       <b-form-input
-        v-model="form.phonenumber.val"
+        v-model="getProfile.customerPhone"
         class="custom-disable"
         :disabled="!form.phonenumber.edit"
         type="tel"
@@ -55,7 +55,7 @@
 
     <b-input-group prepend="Email" class="mt-3">
       <b-form-input
-        v-model="form.email.val"
+        v-model="getProfile.customerEmail"
         type="email"
         class="custom-disable"
         :disabled="!form.email.edit"
@@ -114,9 +114,10 @@
     <h4 class="my-3">Shipping Addresses</h4>
 
     <AddressCard
-      v-for="address in shippingAddresses"
+      v-for="address in getAddresses"
       :key="address.id"
-      :shipping-address="address"
+      :shipping-address="address.deliveryAddress"
+      :shipping-id="address.id"
       class="mb-3"
     />
 
@@ -142,7 +143,10 @@
           label-align-sm="right"
           label-for="nested-street"
         >
-          <b-form-input id="nested-street"></b-form-input>
+          <b-form-input
+            id="nested-street"
+            v-model="form.newStreet"
+          ></b-form-input>
         </b-form-group>
 
         <b-form-group
@@ -151,7 +155,7 @@
           label-align-sm="right"
           label-for="nested-city"
         >
-          <b-form-input id="nested-city"></b-form-input>
+          <b-form-input id="nested-city" v-model="form.newCity"></b-form-input>
         </b-form-group>
 
         <b-form-group
@@ -160,7 +164,7 @@
           label-align-sm="right"
           label-for="nested-zip"
         >
-          <b-form-input id="nested-zip"></b-form-input>
+          <b-form-input id="nested-zip" v-model="form.newZip"></b-form-input>
         </b-form-group>
 
         <b-form-group
@@ -169,7 +173,10 @@
           label-align-sm="right"
           label-for="nested-state"
         >
-          <b-form-input id="nested-state"></b-form-input>
+          <b-form-input
+            id="nested-state"
+            v-model="form.newState"
+          ></b-form-input>
         </b-form-group>
 
         <b-form-group
@@ -178,7 +185,10 @@
           label-align-sm="right"
           label-for="nested-country"
         >
-          <b-form-input id="nested-country"></b-form-input>
+          <b-form-input
+            id="nested-country"
+            v-model="form.newCountry"
+          ></b-form-input>
         </b-form-group>
 
         <div>
@@ -199,6 +209,7 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex'
 import AddressCard from './address-card'
 export default {
   components: {
@@ -227,29 +238,20 @@ export default {
           confirm: '',
           change: false,
         },
+        newStreet: '',
+        newCity: '',
+        newZip: '',
+        newState: '',
+        newCountry: '',
       },
-      shippingAddresses: [
-        {
-          Address: 'Address 1',
-          City: 'City 1',
-          Zip: 'Zip 1',
-          State: 'State 1',
-          Country: 'Country 1',
-          id: '001',
-        },
-        {
-          Address: 'Address 2',
-          City: 'City 2',
-          Zip: 'Zip 2',
-          State: 'State 2',
-          Country: 'Country 2',
-          id: '002',
-        },
-      ],
       shippingAddressAdd: false,
     }
   },
+  computed: {
+    ...mapGetters(['getProfile', 'getAddresses']),
+  },
   methods: {
+    ...mapActions(['postAddresses']),
     cancel(toCancel) {
       const ref = this.form[toCancel]
       ref.val = ref.old
@@ -262,10 +264,25 @@ export default {
       pw.change = false
     },
     addShippingAddress() {
-      console.log('need to fill')
+      try {
+        this.postAddresses({
+          street: this.form.newStreet,
+          city: this.form.newCity,
+          zip: this.form.newZip,
+          state: this.form.newState,
+          country: this.form.newCountry,
+        }).then(() => this.cancelShippingAdd())
+      } catch (error) {
+        console.error(error)
+      }
     },
     cancelShippingAdd() {
-      console.log('need to fill')
+      this.shippingAddressAdd = false
+      this.form.newStreet = ''
+      this.form.newCity = ''
+      this.form.newZip = ''
+      this.form.newState = ''
+      this.form.newCountry = ''
     },
   },
 }

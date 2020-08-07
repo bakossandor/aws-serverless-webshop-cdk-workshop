@@ -5,19 +5,19 @@ const { v4: uuidv4 } = require('uuid');
 const processOrders = require('./process-orders')
 
 exports.handler = async function(event) {
-  const { 'requestContext': {
-    'authorizer': {
-      'jwt': {
-        'claims': {
-          sub: userId
+  const { 
+    'requestContext': {
+      'authorizer': {
+        'jwt': {
+          'claims': {
+            sub: userId
+          }
         }
       }
-    }
-  }, 'body': {
-    items,
-    orderDeliveryAddress,
-  } } = event;
-
+    }, 
+    body
+  } = event;
+  const { orderDeliveryAddress, items } = JSON.parse(body)
   const batchGetItemsParams = {
     "RequestItems": {
       "webshop-backend-table": {
@@ -62,7 +62,7 @@ exports.handler = async function(event) {
         "S": deliveryAddress
       },
       "order_total_price": {
-        "S": String(orderTotalPrice),
+        "N": String(orderTotalPrice),
       },
       "order_delivery_name": {
         "S": customerName,
@@ -72,6 +72,9 @@ exports.handler = async function(event) {
       },
       "order_status": {
         "S": "processing"
+      },
+      "order_datetime": {
+        "N": String(Date.now())
       },
       "order_items": {
         "L": mappedItems.map((item) => {

@@ -28,6 +28,8 @@ exports.handler = async function(event) {
       orderDeliveryName: item.order_delivery_name.S,
       orderDeliveryPhone: item.order_delivery_phone_number.S,
       orderStatus: item.order_status.S,
+      orderDatetime: item.order_datetime.N,
+      orderTotalPrice: item.order_total_price.N,
       orderItems: item.order_items.L.map((orderItem) => {
         return {
           orderedVolume: orderItem.M.ordered_volume.N,

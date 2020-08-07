@@ -18,7 +18,10 @@
             <strong>Price: </strong>
             <span>{{ item.price }}</span>
           </p>
-          <b-button @click="() => removeItem()">remove</b-button>
+          <b-button variant="outline-success" @click="() => addItem(item)"
+            >add</b-button
+          >
+          <b-button @click="() => removeItem(item.id)">remove</b-button>
         </b-col>
       </b-row>
     </b-container>
@@ -26,12 +29,17 @@
 </template>
 
 <script>
+import { mapMutations } from 'vuex'
 export default {
   // eslint-disable-next-line vue/require-prop-types
   props: ['item'],
   methods: {
-    removeItem(item) {
-      console.log(item)
+    ...mapMutations(['addToCart', 'removeFromCart']),
+    removeItem(id) {
+      this.removeFromCart(id)
+    },
+    addItem(item) {
+      this.addToCart(item)
     },
   },
 }

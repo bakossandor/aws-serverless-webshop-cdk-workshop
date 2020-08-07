@@ -187,7 +187,7 @@ class AppStack extends cdk.Stack {
       routeId: 'DeleteCustomerAddressesRoute',
       permissionId: 'DeleteCustomerAddressesPermission',
       method: 'DELETE',
-      path: '/customer/addresses',
+      path: '/customer/addresses/{id}',
     })
   }
 }
