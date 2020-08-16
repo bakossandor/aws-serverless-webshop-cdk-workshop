@@ -1,6 +1,9 @@
 # The project AWS backend implementation
 
 ## Step 0 - Configuring the AWS tools
+1. Install the AWS CLI, here is the link [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
+
+2. Install the AWS CDK (aws cdk installation)[https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html]
 
 ## Step 1 - Init a CDK project
 - create a new empty folder
@@ -136,13 +139,14 @@ exports.handler = async function(event) {
       customerPhone: Item.customer_phone_number.S,
       customerEmail: Item.customer_email.S,
   }
-  
+
   return {
     statusCode: 200,
     headers: { "Content-Type": "application/json" },
-    body: responseBody
+    body: JSON.stringify(responseBody)
   };
 };
+
 ```
 
 Above, the `customer-profile.js` file has a simple thing, proxy the request between the API Gateway and DynamoDB in a controlled way. Again, the purpose of this function is the get the customer profile information, the first thing we do is to get the customer ID from the request `event.requestContext` object. With our setup, using `Cognito` will provide this certain object. We can use this key to get the item from the database. Using the `getItem` method to retrive the customer information, and mapping the `responseBody` based on the DynamoDB response is going to get the job done, before we finish with sending a response back.
@@ -441,6 +445,7 @@ module.exports = {
   postConfirmationFunctionProps,
   dynamoPutItemPolicyProps
 }
+
 ```
 
 To deploy this stack remember to change the `./bin/stack.js` file for only the duration of the deployment of the Cognito User Pool.
@@ -762,3 +767,6 @@ class AppStack extends cdk.Stack {
 
 module.exports = { AppStack }
 ```
+
+## Notes
+- As I fininshed the project I realized the proof of concept got bigger than I expected, in the future I would break down this project into smaller pieces as well.
