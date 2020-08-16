@@ -2,7 +2,7 @@
 The Project's aim is to showcase how to use and manage AWS resources with an Infrastructure as a Code setup, using `aws-cdk`. The product would be represent by a solution/proof of concept for a webshop, using CRUD operations (not more advanced concept or patterns, which would be more ideal in recent years).
 
 ## AWS BACKEND Infrastructure as code build INSTRUCTIONS!!!!
-[aws-backend folder](./aws-backend/README.md)
+[aws-backend instructions](./aws-backend/README.md)
 !!You should definitely check this out, this is the heart and soul of the project!!
 
 The AWS Resources:
@@ -17,7 +17,7 @@ The AWS Resources:
 [aws-backend folder](./aws-backend)
 
 ## AWS BACKEND Infrastructure as code build INSTRUCTIONS!!!!
-[aws-backend folder](./aws-backend/README.md)
+[aws-backend instructions](./aws-backend/README.md)
 !!You should definitely check this out, this is the heart and soul of the project!!
 
 ## FRONT END implementation (Backed by NUXT and AWS Amplify)
@@ -125,7 +125,9 @@ The PK pattern is like #customer#{id}, the SK pattern is like #delivery_address#
 ## Proof of Concept
 
 User Registration
+
 ![POC1](./docs/POC1.gif)
 
 Ordering
+
 ![POC2](./docs/POC2.gif)
