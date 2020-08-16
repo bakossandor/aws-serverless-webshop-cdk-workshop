@@ -1,14 +1,27 @@
 # AWS Serverless Webshop Workshop
-The Project aim is to showcase how to use and manage AWS resources within an Infrastructure as a Code setup, using `aws-cdk`. The product would represent a solution/proof of concept for a webshop, using CRUD operations (not more advanced concept or patterns, which would be more ideal in recent years).
+The Project's aim is to showcase how to use and manage AWS resources with an Infrastructure as a Code setup, using `aws-cdk`. The product would be represent by a solution/proof of concept for a webshop, using CRUD operations (not more advanced concept or patterns, which would be more ideal in recent years).
+
+## AWS BACKEND Infrastructure as code build INSTRUCTIONS!!!!
+[aws-backend folder](./aws-backend/README.md)
+!!You should definitely check this out, this is the heart and soul of the project!!
 
 The AWS Resources:
 - DynamoDB
 - Cognito
+- IAM
 - API Gateway (HTTP API)
 - Lambda
 - Amplify
-- S3
-- CodeBuild
+
+## AWS BACKEND Infrastructure as code implementation
+[aws-backend folder](./aws-backend)
+
+## AWS BACKEND Infrastructure as code build INSTRUCTIONS!!!!
+[aws-backend folder](./aws-backend/README.md)
+!!You should definitely check this out, this is the heart and soul of the project!!
+
+## FRONT END implementation (Backed by NUXT and AWS Amplify)
+[website folder](./website)
 
 ## Requirements / User Stories
 - As an owner, I want to sell pet-food in my local community online, in order to increase the profit.
@@ -20,6 +33,9 @@ The AWS Resources:
 - As a customer, I want to add multiple delivery options to my profile
 - As a customer, I want to login and logout securely from the website
 - As a developer, I want to store securely the user credentials
+
+## Backend Structure
+![aws-backend-structure](./docs/aws-backend.png)
 
 ## The Web Application Design
 
@@ -39,9 +55,7 @@ Checkout page
 ![checkout-page](./docs/checkout-picture.PNG)
 
 ## Front End Component
-The solution contains the front-end part, but the project focus on more how to implement the neccessary aws resources, rather than having the best design. The Front End Stack is based on `Nuxt.js` (Vue Framework), and its staticly hosted. For the first iteration of the project the available products are contained by the nuxt plugin $context api, (we can argue about what is the point where we need to seperate the products from the front-end and add to a CMS, but for simplicity and for the demo reasons now I keep it together). Besides `nuxt.js` the project uses `aws-amplify` to authenicate and manage users, and `bootstrap` to make a better designed prototype.
-
-## Backend Solution
+The solution contains the front-end part, but the project focus on more how to implement the neccessary aws resources, rather than having the best design. The Front End Stack is based on `Nuxt.js` (Vue Framework), and its staticly hosted. For the first iteration of the project the available products are contained by the nuxt plugin `$context api`, (we can argue about what is the point where we need to seperate the products from the front-end and add to a CMS, but for simplicity and for the demo reasons now I keep it together). Besides `nuxt.js` the project uses `aws-amplify` to authenicate and manage users, and `bootstrap` to make a better designed prototype.
 
 ### Defining Queries
 
@@ -91,14 +105,12 @@ The PK pattern is like #customer#{id}, the SK pattern is like #order#{id}
 
 The PK pattern is like #customer#{id}, the SK pattern is like #delivery_address#{id}
 
-### DynamoDB Queries based on the Query requirement (sudo style)
+### DynamoDB Queries based on the Query requirement (sudo like style)
 - Get Customer Data: `Query Where PK = #customer#{id} AND SK = #profile`
 - Get Customer Shipping Addresses: `Query Where PK = #customer#{id} AND SK begins_with #delivery_address#`
 - Get Customer Shipping Address: `Query Where PK = #customer#{id} AND SK = #delivery_address#{id}` (but we would not need this one)
 - Get Customer Ordrers: `Query Where PK = #customer#{pk} AND SK begins_with #order#`
 - Get all the user related data with one query: `Query Where PK = #customer#{pk}`
-
-### DynamoDB put operations
 
 ### API Gateway - Endpoints
 |method|resource|
@@ -106,8 +118,14 @@ The PK pattern is like #customer#{id}, the SK pattern is like #delivery_address#
 |GET|customer/profile|
 |GET|customer/orders|
 |GET|customer/shipping-addresses|
-|GET|customer|
 |POST|customer/orders|
 |POST|customer/shipping-addresses|
 |DELETE|customer/shipping-addresses|
 
+## Proof of Concept
+
+User Registration
+![POC1](./docs/POC1.gif)
+
+Ordering
+![POC2](./docs/POC2.gif)
